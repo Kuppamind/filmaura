@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FilmAura - Your Movie Match</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .movie-container {
+            background: #1a1a1a;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .movie-poster {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .movie-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .movie-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .movie-year {
+            color: #888;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: #ffd700;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .movie-description {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .generate-btn {
+            background: #fff;
+            color: #000;
+        }
+
+        .back-btn {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .generate-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .back-btn:hover {
+            background: #444;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 40px 0;
+        }
+
+        .error {
+            text-align: center;
+            color: #ff4444;
+            margin: 40px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .movie-title {
+                font-size: 1.5rem;
+            }
+
+            .button-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Your Perfect Movie Match</h1>
+        
+        <div id="movieContainer" class="movie-container">
+            <div class="loading">Finding your perfect movie...</div>
+        </div>
+
+        <div class="button-container">
+            <button class="btn generate-btn" id="generateBtn">Generate Another</button>
+            <button class="btn back-btn">Back to Moods</button>
+        </div>
+    </div>
+
+    <script>
+        const TMDB_API_KEY = 'cca1147b183f0b7cf8f895178af7bf38';
+        const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        // Get selected filters from localStorage
+        const selectedGenreIds = JSON.parse(localStorage.getItem('selectedGenreIds') || '[]');
+        const selectedEra = localStorage.getItem('selectedEra') || 'all';
+
+        // Calculate year range based on selected era
+        function getYearRange(era) {
+            if (era === 'all') return { start: 1900, end: new Date().getFullYear() };
+            const startYear = parseInt(era);
+            return { start: startYear, end: startYear + 9 };
+        }
+
+        // Fetch a random movie from TMDb API
+        async function fetchRandomMovie() {
+            const yearRange = getYearRange(selectedEra);
+            const genreIds = selectedGenreIds.join(',');
+            
+            try {
+                // First, get the total number of pages
+                const response = await fetch(
+                    `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=vote_average.desc&vote_count.gte=1000&vote_average.gte=6.7&with_genres=${genreIds}&primary_release_date.gte=${yearRange.start}-01-01&primary_release_date.lte=${yearRange.end}-12-31&page=1`
+                );
+                
+                if (!response.ok) throw new Error('Failed to fetch movies');
+                
+                const data = await response.json();
+                const totalPages = Math.min(data.total_pages, 500); // TMDb limits to 500 pages
+                const randomPage = Math.floor(Math.random() * totalPages) + 1;
+
+                // Fetch a random page
+                const randomResponse = await fetch(
+                    `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=vote_average.desc&vote_count.gte=1000&vote_average.gte=6.7&with_genres=${genreIds}&primary_release_date.gte=${yearRange.start}-01-01&primary_release_date.lte=${yearRange.end}-12-31&page=${randomPage}`
+                );
+
+                if (!randomResponse.ok) throw new Error('Failed to fetch random movie');
+                
+                const randomData = await randomResponse.json();
+                const movies = randomData.results;
+                return movies[Math.floor(Math.random() * movies.length)];
+            } catch (error) {
+                console.error('Error fetching movie:', error);
+                return null;
+            }
+        }
+
+        // Display movie
+        function displayMovie(movie) {
+            const movieContainer = document.getElementById('movieContainer');
+            
+            if (!movie) {
+                movieContainer.innerHTML = '<div class="error">No movies found. Try different filters!</div>';
+                return;
+            }
+
+            movieContainer.innerHTML = `
+                <img src="${TMDB_IMAGE_BASE_URL}${movie.poster_path}" 
+                     alt="${movie.title}" 
+                     class="movie-poster"
+                     onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
+                <div class="movie-info">
+                    <h3 class="movie-title">${movie.title}</h3>
+                    <div class="movie-year">${movie.release_date.split('-')[0]}</div>
+                    <div class="movie-rating">⭐ ${movie.vote_average.toFixed(1)}</div>
+                    <p class="movie-description">${movie.overview}</p>
+                </div>
+            `;
+        }
+
+        // Initialize the page
+        async function init() {
+            const movie = await fetchRandomMovie();
+            displayMovie(movie);
+        }
+
+        // Handle generate button click
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const movieContainer = document.getElementById('movieContainer');
+            movieContainer.innerHTML = '<div class="loading">Finding another perfect match...</div>';
+            const movie = await fetchRandomMovie();
+            displayMovie(movie);
+        });
+
+        // Handle back button click
+        document.querySelector('.back-btn').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // Start loading movie
+        init();
+    </script>
+</body>
+</html> 
