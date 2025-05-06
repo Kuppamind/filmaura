@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6c5ce7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>FilmAura Mobile</title>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --accent: #6c5ce7;
+            --accent-hover: #5649c0;
+            --card-bg: #ffffff;
+            --card-hover: #f0f0f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent: #a29bfe;
+            --accent-hover: #6c5ce7;
+            --card-bg: #2a2a2a;
+            --card-hover: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 8px;
+            padding-bottom: 80px; /* Space for theme toggle */
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-primary);
+            padding: 12px 8px;
+            margin-bottom: 12px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--bg-secondary);
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 4px 0;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid var(--bg-secondary);
+            border-radius: 16px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+
+        .search-btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 16px;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            min-width: 80px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .search-btn:active {
+            transform: scale(0.96);
+            background: var(--accent-hover);
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            padding: 4px;
+        }
+
+        .movie-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .movie-card:active {
+            transform: scale(0.96);
+        }
+
+        .movie-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            background: var(--bg-secondary);
+        }
+
+        .movie-info {
+            padding: 10px;
+        }
+
+        .movie-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+
+        .movie-year {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .movie-rating {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .no-results h2 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .no-results p {
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.92);
+        }
+
+        /* Loading animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--bg-secondary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        /* Mobile-specific optimizations */
+        @media (max-width: 480px) {
+            .container {
+                padding: 6px;
+            }
+
+            .header {
+                padding: 10px 6px;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .search-container {
+                gap: 6px;
+            }
+
+            .search-box {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+
+            .search-btn {
+                padding: 12px 16px;
+                font-size: 0.95rem;
+                min-width: 70px;
+            }
+
+            .movies-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 8px;
+            }
+
+            .movie-info {
+                padding: 8px;
+            }
+
+            .movie-title {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Small phone optimization */
+        @media (max-width: 360px) {
+            .movies-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 6px;
+            }
+
+            .movie-title {
+                font-size: 0.75rem;
+            }
+
+            .movie-year {
+                font-size: 0.7rem;
+            }
+
+            .movie-rating {
+                padding: 3px 6px;
+                font-size: 0.7rem;
+            }
+
+            .theme-toggle {
+                width: 48px;
+                height: 48px;
+                font-size: 1.2rem;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        /* Add pull-to-refresh animation */
+        @keyframes pull-to-refresh {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(20px); }
+            100% { transform: translateY(0); }
+        }
+
+        .pull-to-refresh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+
+        .pull-to-refresh.active {
+            transform: translateY(0);
+            animation: pull-to-refresh 1s ease-in-out;
+        }
+
+        /* Add bottom navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            border-top: 1px solid var(--bg-secondary);
+            z-index: 99;
+        }
+
+        .nav-item {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="pull-to-refresh" id="pullToRefresh">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="logo">FilmAura</a>
+        </div>
+
+        <div class="search-container">
+            <input type="text" 
+                   class="search-box" 
+                   id="searchBox" 
+                   placeholder="Search movies, actors..."
+                   autocomplete="off"
+                   autocapitalize="off"
+                   spellcheck="false"
+                   enterkeyhint="search">
+            <button class="search-btn" id="searchBtn">Search</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <div class="movies-grid" id="moviesGrid"></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="mobile-search.html" class="nav-item active">
+            <span class="nav-icon">🔍</span>
+            <span>Search</span>
+        </a>
+        <a href="bookmarks.html" class="nav-item">
+            <span class="nav-icon">📚</span>
+            <span>Bookmarks</span>
+        </a>
+    </nav>
+
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        🌙
+    </button>
+
+    <script>
+        const TMDB_API_KEY = 'cca1147b183f0b7cf8f895178af7bf38';
+        const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        // Theme handling
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Set initial theme
+        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        themeToggle.textContent = prefersDark ? '☀️' : '🌙';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const searchBtn = document.getElementById('searchBtn');
+        const moviesGrid = document.getElementById('moviesGrid');
+        const loading = document.getElementById('loading');
+        let searchTimeout;
+
+        async function searchMovies(query) {
+            try {
+                loading.classList.add('active');
+                moviesGrid.innerHTML = '';
+
+                // Search for movies
+                const movieResults = await fetch(
+                    `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1&include_adult=false`
+                ).then(res => res.json());
+
+                // Search for people (actors/directors)
+                const peopleResults = await fetch(
+                    `https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1&include_adult=false`
+                ).then(res => res.json());
+
+                // Get movies from people's filmography
+                const peopleMovies = await Promise.all(
+                    peopleResults.results.slice(0, 3).map(async person => {
+                        const personDetails = await fetch(
+                            `https://api.themoviedb.org/3/person/${person.id}/movie_credits?api_key=${TMDB_API_KEY}&language=en-US`
+                        ).then(res => res.json());
+                        return personDetails.cast || [];
+                    })
+                );
+
+                // Combine and filter results
+                const allMovies = [...movieResults.results, ...peopleMovies.flat()]
+                    .filter(movie => movie.vote_average >= 6.0 && movie.vote_count >= 500)
+                    .sort((a, b) => b.vote_average - a.vote_average);
+
+                if (allMovies.length === 0) {
+                    moviesGrid.innerHTML = `
+                        <div class="no-results">
+                            <h2>No movies found</h2>
+                            <p>Try different search terms</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Display results
+                allMovies.forEach(movie => {
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'movie-card';
+                    movieCard.onclick = () => showMovieDetails(movie);
+
+                    const posterPath = movie.poster_path 
+                        ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
+                        : 'https://via.placeholder.com/500x750?text=No+Poster';
+
+                    movieCard.innerHTML = `
+                        <div style="position: relative;">
+                            <img src="${posterPath}" alt="${movie.title}" class="movie-poster">
+                            <div class="movie-rating">⭐ ${movie.vote_average.toFixed(1)}</div>
+                        </div>
+                        <div class="movie-info">
+                            <div class="movie-title">${movie.title}</div>
+                            <div class="movie-year">${movie.release_date ? movie.release_date.split('-')[0] : 'N/A'}</div>
+                        </div>
+                    `;
+
+                    moviesGrid.appendChild(movieCard);
+                });
+            } catch (error) {
+                console.error('Search error:', error);
+                moviesGrid.innerHTML = `
+                    <div class="no-results">
+                        <h2>Error</h2>
+                        <p>Please try again later</p>
+                    </div>
+                `;
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function showMovieDetails(movie) {
+            localStorage.setItem('selectedMovie', JSON.stringify(movie));
+            window.location.href = 'results.html';
+        }
+
+        // Handle search
+        function handleSearch() {
+            const query = searchBox.value.trim();
+            if (!query) return;
+            searchMovies(query);
+        }
+
+        // Event listeners
+        searchBtn.addEventListener('click', handleSearch);
+        
+        searchBox.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+            }
+        });
+
+        // Real-time search with debounce
+        searchBox.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(handleSearch, 500);
+            }
+        });
+
+        // Check for saved search results
+        const savedQuery = localStorage.getItem('searchQuery');
+        if (savedQuery) {
+            searchBox.value = savedQuery;
+            handleSearch();
+            localStorage.removeItem('searchQuery');
+        }
+
+        // Add pull-to-refresh functionality
+        let touchStart = 0;
+        let touchEnd = 0;
+        const pullToRefresh = document.getElementById('pullToRefresh');
+
+        document.addEventListener('touchstart', e => {
+            touchStart = e.touches[0].clientY;
+        }, false);
+
+        document.addEventListener('touchmove', e => {
+            touchEnd = e.touches[0].clientY;
+            if (window.scrollY === 0 && touchEnd > touchStart) {
+                pullToRefresh.style.transform = `translateY(${Math.min((touchEnd - touchStart) / 2, 60)}px)`;
+            }
+        }, false);
+
+        document.addEventListener('touchend', () => {
+            if (window.scrollY === 0 && touchEnd - touchStart > 100) {
+                pullToRefresh.classList.add('active');
+                handleSearch();
+                setTimeout(() => {
+                    pullToRefresh.classList.remove('active');
+                    pullToRefresh.style.transform = 'translateY(-100%)';
+                }, 1000);
+            } else {
+                pullToRefresh.style.transform = 'translateY(-100%)';
+            }
+        }, false);
+
+        // Add bottom navigation active state
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', e => {
+                document.querySelectorAll('.nav-item').forEach(navItem => {
+                    navItem.classList.remove('active');
+                });
+                e.currentTarget.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html> 

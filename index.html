@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FilmAura - Movie Discovery by Mood</title>
+    <style>
+        :root {
+            /* Light theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --accent: #6c5ce7;
+            --accent-hover: #5649c0;
+            --card-bg: #ffffff;
+            --card-hover: #f0f0f0;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent: #a29bfe;
+            --accent-hover: #6c5ce7;
+            --card-bg: #2a2a2a;
+            --card-hover: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            padding: 0 16px;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: clamp(2.5rem, 10vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 24px;
+            background: linear-gradient(45deg, var(--accent), var(--accent-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: clamp(1.1rem, 4vw, 1.3rem);
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            margin-top: 16px;
+        }
+
+        .search-container {
+            margin-bottom: 32px;
+            padding: 0 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-box {
+            flex: 1;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 2px solid var(--bg-secondary);
+            border-radius: 25px;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+
+        .search-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .search-box {
+                width: 100%;
+                max-width: none;
+            }
+
+            .search-btn {
+                width: 100%;
+            }
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--card-bg);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 12px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .mood-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 65px;
+            position: relative;
+            z-index: 1;
+            margin: 3px;
+            border: 1px solid transparent;
+        }
+
+        .mood-card:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: var(--card-hover);
+            z-index: 2;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+            border-color: var(--accent);
+        }
+
+        .mood-card:active {
+            transform: translateY(-1px) scale(0.98);
+            transition: all 0.1s;
+        }
+
+        .mood-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'Helvetica', sans-serif;
+        }
+
+        .mood-card:hover h3 {
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .mood-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .mood-card {
+                padding: 10px 6px;
+                min-height: 55px;
+                margin: 2px;
+                border-radius: 14px;
+            }
+
+            .mood-card h3 {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mood-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 6px;
+                padding: 6px;
+            }
+
+            .mood-card {
+                padding: 8px 4px;
+                min-height: 48px;
+                margin: 1px;
+                border-radius: 12px;
+            }
+
+            .mood-card h3 {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Google Analytics */
+        .analytics {
+            position: fixed;
+            bottom: 8px;
+            right: 8px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .bookmarks-link {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: var(--card-bg);
+            border: none;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .bookmarks-link:hover {
+            transform: translateY(-2px);
+            background: var(--card-hover);
+        }
+
+        .mood-title {
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+            font-family: 'Helvetica', sans-serif;
+        }
+
+        .mood-subtitle {
+            font-size: clamp(1rem, 4vw, 1.2rem);
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            font-family: 'Garamond', serif;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        🌙
+    </button>
+
+    <a href="bookmarks.html" class="bookmarks-link">
+        <span>📚</span> Bookmarks
+    </a>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">FilmAura</h1>
+            <p class="subtitle">Discover movies that match your mood</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" 
+                   class="search-box" 
+                   id="searchBox" 
+                   placeholder="Search by title, director, actor, or keyword..."
+                   aria-label="Search movies">
+            <button class="search-btn" id="searchBtn">Search</button>
+        </div>
+
+        <div class="mood-grid">
+            <div class="mood-card" data-mood="cheerful">
+                <h3>Cheerful</h3>
+            </div>
+            <div class="mood-card" data-mood="melancholy">
+                <h3>Melancholy</h3>
+            </div>
+            <div class="mood-card" data-mood="thoughtful">
+                <h3>Thoughtful</h3>
+            </div>
+            <div class="mood-card" data-mood="romantic">
+                <h3>Romantic</h3>
+            </div>
+            <div class="mood-card" data-mood="lonely">
+                <h3>Lonely</h3>
+            </div>
+            <div class="mood-card" data-mood="anxious">
+                <h3>Anxious</h3>
+            </div>
+            <div class="mood-card" data-mood="hopeful">
+                <h3>Hopeful</h3>
+            </div>
+            <div class="mood-card" data-mood="playful">
+                <h3>Playful</h3>
+            </div>
+            <div class="mood-card" data-mood="chill">
+                <h3>Chill</h3>
+            </div>
+            <div class="mood-card" data-mood="heartbroken">
+                <h3>Heartbroken</h3>
+            </div>
+            <div class="mood-card" data-mood="adventurous">
+                <h3>Adventurous</h3>
+            </div>
+            <div class="mood-card" data-mood="inspired">
+                <h3>Inspired</h3>
+            </div>
+            <div class="mood-card" data-mood="frustrated">
+                <h3>Frustrated</h3>
+            </div>
+            <div class="mood-card" data-mood="curious">
+                <h3>Curious</h3>
+            </div>
+            <div class="mood-card" data-mood="horny">
+                <h3>Horny</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics" id="hitCounter">Visits: 0</div>
+
+    <script>
+        const TMDB_API_KEY = 'cca1147b183f0b7cf8f895178af7bf38';
+        
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Set initial theme
+        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        themeToggle.textContent = prefersDark ? '☀️' : '🌙';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Simple hit counter
+        let hits = parseInt(localStorage.getItem('hits') || '0');
+        hits++;
+        localStorage.setItem('hits', hits.toString());
+        document.getElementById('hitCounter').textContent = `Visits: ${hits}`;
+
+        // Mood to genre mapping
+        const moodToGenres = {
+            'cheerful': [35, 10751, 10402], // Comedy, Family, Music
+            'melancholy': [18, 9648, 10749], // Drama, Mystery, Romance
+            'thoughtful': [18, 9648, 878], // Drama, Mystery, Sci-Fi
+            'romantic': [10749, 18, 35], // Romance, Drama, Comedy
+            'lonely': [18, 9648, 10749], // Drama, Mystery, Romance
+            'anxious': [53, 27, 9648], // Thriller, Horror, Mystery
+            'hopeful': [14, 10751, 18], // Fantasy, Family, Drama
+            'playful': [35, 10751, 16], // Comedy, Family, Animation
+            'chill': [18, 10749, 35], // Drama, Romance, Comedy
+            'heartbroken': [18, 10749, 9648], // Drama, Romance, Mystery
+            'adventurous': [28, 12, 14], // Action, Adventure, Fantasy
+            'inspired': [18, 99, 36], // Drama, Documentary, History
+            'frustrated': [28, 53, 18], // Action, Thriller, Drama
+            'curious': [9648, 878, 18], // Mystery, Sci-Fi, Drama
+            'horny': [10749, 18, 35] // Romance, Drama, Comedy
+        };
+
+        // Add click handlers for mood cards
+        document.querySelectorAll('.mood-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const mood = card.dataset.mood;
+                const genres = moodToGenres[mood];
+                // Store the selected mood and genres in localStorage
+                localStorage.setItem('selectedMood', mood);
+                localStorage.setItem('selectedGenres', JSON.stringify(genres));
+                // Navigate to filters page
+                window.location.href = 'filters.html';
+            });
+        });
+
+        // Add search functionality
+        async function searchMovies(query) {
+            try {
+                console.log('Searching for:', query);
+                
+                // Split query into individual words and remove empty strings
+                const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+                
+                // Search for movies
+                const movieResults = await fetch(
+                    `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1&include_adult=false`
+                ).then(res => res.json());
+
+                // Search for people (actors/directors)
+                const peopleResults = await fetch(
+                    `https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&language=en-US&query=${encodeURIComponent(query)}&page=1&include_adult=false`
+                ).then(res => res.json());
+
+                // Get movies from people's filmography
+                const peopleMovies = await Promise.all(
+                    peopleResults.results.slice(0, 3).map(async person => {
+                        const personDetails = await fetch(
+                            `https://api.themoviedb.org/3/person/${person.id}/movie_credits?api_key=${TMDB_API_KEY}&language=en-US`
+                        ).then(res => res.json());
+                        return personDetails.cast || [];
+                    })
+                );
+
+                // Combine all movie results
+                const allMovies = [
+                    ...movieResults.results,
+                    ...peopleMovies.flat()
+                ];
+
+                // Create a map to store unique movies with their match scores
+                const movieMap = new Map();
+                
+                allMovies.forEach(movie => {
+                    if (movie.vote_average >= 6.0 && movie.vote_count >= 500) {
+                        const existingMovie = movieMap.get(movie.id);
+                        
+                        if (existingMovie) {
+                            // If movie already exists, increase its score
+                            existingMovie.score += 1;
+                        } else {
+                            // Calculate initial match score
+                            const searchableText = [
+                                movie.title,
+                                movie.overview || '',
+                                movie.original_title || ''
+                            ].join(' ').toLowerCase();
+                            
+                            // Count how many search terms match this movie
+                            const matchScore = searchTerms.reduce((score, term) => {
+                                return score + (searchableText.includes(term) ? 1 : 0);
+                            }, 1); // Start with 1 for the initial match
+                            
+                            movieMap.set(movie.id, {
+                                ...movie,
+                                score: matchScore
+                            });
+                        }
+                    }
+                });
+
+                // Convert map to array and sort by score and rating
+                const filteredResults = Array.from(movieMap.values())
+                    .sort((a, b) => {
+                        // First sort by match score
+                        if (b.score !== a.score) {
+                            return b.score - a.score;
+                        }
+                        // Then by rating
+                        return b.vote_average - a.vote_average;
+                    });
+
+                console.log('Filtered results:', filteredResults.length);
+
+                if (filteredResults.length > 0) {
+                    // Store search query and results
+                    localStorage.setItem('searchQuery', query);
+                    localStorage.setItem('searchResults', JSON.stringify(filteredResults));
+                    window.location.href = 'search-results.html';
+                } else {
+                    alert('No movies found matching your search. Try different keywords!');
+                }
+            } catch (error) {
+                console.error('Error searching movies:', error);
+                alert('Error searching movies. Please try again.');
+            }
+        }
+
+        // Handle search with debounce
+        let searchTimeout;
+        const searchBox = document.getElementById('searchBox');
+        const searchBtn = document.getElementById('searchBtn');
+
+        async function handleSearch() {
+            const query = searchBox.value.trim();
+            if (!query) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            // Show loading state
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            
+            try {
+                await searchMovies(query);
+            } catch (error) {
+                console.error('Search error:', error);
+                alert('Error performing search. Please try again.');
+            } finally {
+                // Reset button state
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+            }
+        }
+
+        // Add event listeners when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Search button click
+            searchBtn.addEventListener('click', handleSearch);
+            
+            // Enter key press in search box
+            searchBox.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearch();
+                }
+            });
+
+            // Add input event for real-time search suggestions
+            searchBox.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        handleSearch();
+                    }, 500);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
