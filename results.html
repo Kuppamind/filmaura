@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FilmAura - Movie Results</title>
+    <style>
+        :root {
+            --accent: #575555;
+            --accent-hover: #1d1c1e;
+            --bg-primary: #0e0e0f;
+            --bg-secondary: #1d1c1e;
+            --text-primary: #d6d5d3;
+            --text-secondary: #9d9c99;
+            --card-bg: #1d1c1e;
+            --card-hover: #2a2a2a;
+        }
+
+        [data-theme="dark"] {
+            --accent: #9d9c99;
+            --accent-hover: #575555;
+            --bg-primary: #0e0e0f;
+            --bg-secondary: #1d1c1e;
+            --text-primary: #d6d5d3;
+            --text-secondary: #9d9c99;
+            --card-bg: #1d1c1e;
+            --card-hover: #2a2a2a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: clamp(2rem, 6vw, 2.8rem);
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, var(--orange-wheel), var(--syracuse-red-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 3vw, 1.1rem);
+            color: var(--myrtle-green);
+            margin-bottom: 16px;
+        }
+
+        .movies-grid {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 32px;
+            padding: 0 16px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .regenerate-btn {
+            background: var(--orange-wheel);
+            color: var(--snow);
+        }
+
+        .back-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(242, 129, 35, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .regenerate-btn:hover {
+            background: var(--syracuse-red-orange);
+        }
+
+        .back-btn:hover {
+            background: var(--card-hover);
+        }
+
+        .movie-container {
+            background: var(--card-bg);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(242, 129, 35, 0.1);
+            display: flex;
+            height: 65vh;
+            position: relative;
+            transition: all 0.3s ease;
+            margin: 0 auto;
+            max-width: 900px;
+            width: 100%;
+            border: 1px solid rgba(242, 129, 35, 0.1);
+        }
+
+        .movie-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(242, 129, 35, 0.15);
+        }
+
+        .poster-container {
+            position: relative;
+            width: 40%;
+            min-width: 300px;
+            background: var(--bg-secondary);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-right: 1px solid rgba(242, 129, 35, 0.1);
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.5s ease;
+            padding: 16px;
+        }
+
+        .movie-container:hover .movie-poster {
+            transform: scale(1.03);
+        }
+
+        .movie-info {
+            padding: 36px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+            background: var(--card-bg);
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .movie-title {
+            font-size: clamp(1.8rem, 4vw, 2.2rem);
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+            color: var(--text-primary);
+            font-family: 'Helvetica', sans-serif;
+            letter-spacing: -0.5px;
+        }
+
+        .movie-year {
+            color: var(--orange-wheel);
+            font-size: 1.1rem;
+            font-family: 'Garamond', serif;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .movie-year::before {
+            content: '•';
+            color: var(--orange-wheel);
+        }
+
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--orange-wheel);
+            font-size: 1.1rem;
+            font-family: 'Garamond', serif;
+        }
+
+        .movie-description {
+            color: var(--myrtle-green);
+            line-height: 1.7;
+            font-size: 1.1rem;
+            margin: 0;
+            font-family: 'Garamond', serif;
+            opacity: 0.9;
+        }
+
+        .share-buttons {
+            position: fixed;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .share-btn {
+            background: var(--card-bg);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .share-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .share-btn.twitter {
+            color: #1DA1F2;
+        }
+
+        .share-btn.instagram {
+            color: #E1306C;
+        }
+
+        .share-btn.whatsapp {
+            color: #25D366;
+        }
+
+        .share-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .share-btn:active {
+            transform: scale(0.95);
+        }
+
+        .bookmark-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--orange-wheel);
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .bookmark-btn svg {
+            width: 22px;
+            height: 22px;
+            transition: transform 0.3s ease;
+        }
+
+        .bookmark-btn:hover {
+            transform: scale(1.1);
+            background: white;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .bookmark-btn:hover svg {
+            transform: scale(1.1);
+        }
+
+        .bookmark-btn:active {
+            transform: scale(0.95);
+        }
+
+        .bookmark-btn.bookmarked {
+            background: var(--orange-wheel);
+            color: var(--snow);
+        }
+
+        .bookmark-btn.bookmarked:hover {
+            background: var(--syracuse-red-orange);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--card-bg);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .bookmarks-link {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: var(--card-bg);
+            border: none;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--orange-wheel);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bookmarks-link:hover {
+            transform: translateY(-2px);
+            background: var(--card-hover);
+            color: var(--syracuse-red-orange);
+        }
+
+        .copy-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--orange-wheel);
+            color: var(--snow);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(242, 129, 35, 0.1);
+            z-index: 1000;
+        }
+
+        .copy-message.show {
+            opacity: 1;
+        }
+
+        .bookmark-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--orange-wheel);
+            color: var(--snow);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+            z-index: 20;
+            white-space: nowrap;
+        }
+
+        .bookmark-message.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .movie-container {
+                flex-direction: column;
+                height: auto;
+                max-height: 85vh;
+                border-radius: 20px;
+            }
+
+            .poster-container {
+                width: 100%;
+                min-width: unset;
+                height: 50vh;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .movie-poster {
+                padding: 12px;
+            }
+
+            .movie-info {
+                padding: 24px;
+                gap: 20px;
+            }
+
+            .movie-title {
+                font-size: 1.6rem;
+            }
+
+            .movie-year, .movie-rating {
+                font-size: 1rem;
+            }
+
+            .movie-description {
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+
+            .button-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 12px 24px;
+            }
+
+            .bookmark-btn {
+                width: 36px;
+                height: 36px;
+                top: 12px;
+                right: 12px;
+            }
+
+            .bookmark-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .share-buttons {
+                position: fixed;
+                bottom: 16px;
+                right: 16px;
+                top: auto;
+                transform: none;
+                flex-direction: row;
+                background: var(--card-bg);
+                padding: 8px;
+                border-radius: 25px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .share-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .share-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .bookmark-message {
+                font-size: 0.9rem;
+                padding: 10px 16px;
+            }
+        }
+
+        .action-buttons {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            color: var(--orange-wheel);
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(242, 129, 35, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .action-btn svg {
+            width: 22px;
+            height: 22px;
+            transition: transform 0.3s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+            background: var(--card-hover);
+            box-shadow: 0 8px 24px rgba(242, 129, 35, 0.15);
+        }
+
+        .action-btn:hover svg {
+            transform: scale(1.1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .action-btn.bookmarked {
+            background: var(--orange-wheel);
+            color: var(--snow);
+        }
+
+        .action-btn.bookmarked:hover {
+            background: var(--syracuse-red-orange);
+        }
+
+        .copy-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--orange-wheel);
+            color: var(--snow);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(242, 129, 35, 0.1);
+            z-index: 1000;
+        }
+
+        .copy-message.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                top: 12px;
+                right: 12px;
+                gap: 8px;
+            }
+
+            .action-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .action-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        🌙
+    </button>
+
+    <button class="bookmarks-link" onclick="window.location.href='bookmarks.html'">
+        <span>📚</span> Bookmarks
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">FilmAura</h1>
+            <p class="subtitle">Your Movie Matches</p>
+        </div>
+
+        <div id="moviesGrid" class="movies-grid">
+            <!-- Movies will be loaded here -->
+        </div>
+
+        <div class="button-container">
+            <button class="btn back-btn" onclick="handleBackToMoods()">
+                <span>←</span> Back to Moods
+            </button>
+            <button class="btn regenerate-btn" onclick="regenerateMovies()">
+                <span>🔄</span> Regenerate
+            </button>
+        </div>
+    </div>
+
+    <div class="copy-message" id="copyMessage">Link copied to clipboard!</div>
+
+    <div class="social-share" id="socialShare">
+        <button class="social-btn" onclick="shareOnTwitter()">𝕏</button>
+        <button class="social-btn" onclick="shareOnFacebook()">f</button>
+        <button class="social-btn" onclick="shareOnWhatsApp()">📱</button>
+        <button class="social-btn" onclick="copyLink()">🔗</button>
+    </div>
+
+    <script>
+        const TMDB_API_KEY = 'cca1147b183f0b7cf8f895178af7bf38';
+        const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        // Store current state
+        let currentState = {
+            movies: [],
+            currentIndex: 0
+        };
+
+        // Handle browser navigation
+        window.addEventListener('popstate', function(event) {
+            if (event.state && event.state.movies) {
+                currentState = event.state;
+                renderMovies();
+            }
+        });
+
+        // Initialize state
+        function initializeState() {
+            // Clear any existing state when initializing
+            sessionStorage.removeItem('movieState');
+            currentState = {
+                movies: [],
+                currentIndex: 0
+            };
+            
+            fetchMovies().then(results => {
+                currentState.movies = results;
+                currentState.currentIndex = 0;
+                saveState();
+                renderMovies();
+            });
+        }
+
+        // Save current state
+        function saveState() {
+            sessionStorage.setItem('movieState', JSON.stringify(currentState));
+            window.history.replaceState(currentState, '');
+        }
+
+        // Clear state when leaving the page
+        function clearState() {
+            sessionStorage.removeItem('movieState');
+            currentState = {
+                movies: [],
+                currentIndex: 0
+            };
+        }
+
+        // Handle back button click
+        function handleBackToMoods() {
+            clearState();
+            window.location.href = 'index.html';
+        }
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Set initial theme
+        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        themeToggle.textContent = prefersDark ? '☀️' : '🌙';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            themeToggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Show copy message
+        function showCopyMessage(message = 'Link copied to clipboard!') {
+            const copyMessage = document.getElementById('copyMessage');
+            copyMessage.textContent = message;
+            copyMessage.classList.add('show');
+            setTimeout(() => {
+                copyMessage.classList.remove('show');
+            }, 2000);
+        }
+
+        // Share functionality
+        let currentMovie = null;
+
+        function shareMovie(title, id) {
+            currentMovie = { title, id };
+            const socialShare = document.getElementById('socialShare');
+            socialShare.classList.add('show');
+        }
+
+        function hideSocialShare() {
+            const socialShare = document.getElementById('socialShare');
+            socialShare.classList.remove('show');
+        }
+
+        function shareOnTwitter() {
+            if (!currentMovie) return;
+            const text = `Check out "${currentMovie.title}" on FilmAura!`;
+            const url = `${window.location.origin}/results.html?movie=${currentMovie.id}`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`);
+            hideSocialShare();
+        }
+
+        function shareOnFacebook() {
+            if (!currentMovie) return;
+            const url = `${window.location.origin}/results.html?movie=${currentMovie.id}`;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+            hideSocialShare();
+        }
+
+        function shareOnWhatsApp() {
+            if (!currentMovie) return;
+            const text = `Check out "${currentMovie.title}" on FilmAura!`;
+            const url = `${window.location.origin}/results.html?movie=${currentMovie.id}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`);
+            hideSocialShare();
+        }
+
+        function copyLink() {
+            if (!currentMovie) return;
+            const url = `${window.location.origin}/results.html?movie=${currentMovie.id}`;
+            navigator.clipboard.writeText(url).then(() => {
+                showCopyMessage();
+                hideSocialShare();
+            });
+        }
+
+        // Close social share when clicking outside
+        document.addEventListener('click', (e) => {
+            const socialShare = document.getElementById('socialShare');
+            if (!socialShare.contains(e.target) && !e.target.classList.contains('share-btn')) {
+                hideSocialShare();
+            }
+        });
+
+        // Fetch movies based on selected genres and era
+        async function fetchMovies() {
+            const selectedGenreIds = JSON.parse(localStorage.getItem('selectedGenreIds') || '[]');
+            const selectedEra = localStorage.getItem('selectedEra') || 'all';
+            const selectedMood = localStorage.getItem('selectedMood');
+            
+            // Calculate year range based on selected era
+            let yearRange = '';
+            if (selectedEra !== 'all') {
+                const decade = parseInt(selectedEra);
+                yearRange = `&primary_release_date.gte=${decade}-01-01&primary_release_date.lte=${decade + 9}-12-31`;
+            }
+
+            // Add mood-specific parameters
+            const moodParams = selectedMood ? `&with_keywords=${getMoodKeywords(selectedMood)}` : '';
+
+            // Randomize sort order for more variety
+            const sortOptions = [
+                'popularity.desc',
+                'vote_average.desc',
+                'release_date.desc',
+                'revenue.desc'
+            ];
+            const randomSort = sortOptions[Math.floor(Math.random() * sortOptions.length)];
+
+            try {
+                // First, try to get movies with all filters
+                let response = await fetch(
+                    `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=${randomSort}&include_adult=false&with_genres=${selectedGenreIds.join(',')}${yearRange}${moodParams}&vote_average.gte=6.5&vote_count.gte=1000&page=${Math.floor(Math.random() * 5) + 1}`
+                );
+                
+                if (!response.ok) throw new Error('Failed to fetch movies');
+                
+                let data = await response.json();
+                
+                // If we don't get enough results, try with relaxed criteria
+                if (data.results.length < 3) {
+                    response = await fetch(
+                        `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=en-US&sort_by=${randomSort}&include_adult=false&with_genres=${selectedGenreIds.join(',')}${yearRange}&vote_average.gte=6.0&vote_count.gte=500&page=${Math.floor(Math.random() * 5) + 1}`
+                    );
+                    
+                    if (!response.ok) throw new Error('Failed to fetch movies with relaxed criteria');
+                    
+                    data = await response.json();
+                }
+
+                // Ensure we have unique movies
+                const uniqueMovies = data.results.filter((movie, index, self) =>
+                    index === self.findIndex((m) => m.id === movie.id)
+                );
+
+                return uniqueMovies.slice(0, 3);
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+                return [];
+            }
+        }
+
+        // Get mood-specific keywords for better recommendations
+        function getMoodKeywords(mood) {
+            const moodKeywords = {
+                'cheerful': '210024|287501', // Comedy, Feel-good
+                'melancholy': '210024|287501', // Drama, Emotional
+                'thoughtful': '210024|287501', // Drama, Philosophical
+                'romantic': '210024|287501', // Romance, Love
+                'lonely': '210024|287501', // Drama, Emotional
+                'anxious': '210024|287501', // Thriller, Suspense
+                'hopeful': '210024|287501', // Inspirational, Uplifting
+                'playful': '210024|287501', // Comedy, Fun
+                'chill': '210024|287501', // Relaxing, Easy-going
+                'heartbroken': '210024|287501', // Drama, Emotional
+                'adventurous': '210024|287501', // Action, Adventure
+                'inspired': '210024|287501', // Inspirational, Motivational
+                'frustrated': '210024|287501', // Drama, Intense
+                'curious': '210024|287501', // Mystery, Intrigue
+                'horny': '210024|287501' // Romance, Drama
+            };
+            return moodKeywords[mood] || '';
+        }
+
+        function toggleBookmark(id) {
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarkedMovies') || '[]');
+            const index = bookmarks.findIndex(movie => movie.id === id);
+
+            if (index === -1) {
+                const movie = currentState.movies.find(m => m.id === id);
+                if (movie) {
+                    const movieToStore = {
+                        id: movie.id,
+                        title: movie.title,
+                        overview: movie.overview,
+                        poster_path: movie.poster_path,
+                        release_date: movie.release_date,
+                        vote_average: movie.vote_average
+                    };
+                    bookmarks.push(movieToStore);
+                    showBookmarkMessage('Added to bookmarks!');
+                }
+            } else {
+                bookmarks.splice(index, 1);
+                showBookmarkMessage('Removed from bookmarks');
+            }
+
+            localStorage.setItem('bookmarkedMovies', JSON.stringify(bookmarks));
+            renderMovies();
+        }
+
+        function showBookmarkMessage(message) {
+            const posterContainer = document.querySelector('.poster-container');
+            let messageElement = document.querySelector('.bookmark-message');
+            
+            if (!messageElement) {
+                messageElement = document.createElement('div');
+                messageElement.className = 'bookmark-message';
+                posterContainer.appendChild(messageElement);
+            }
+
+            messageElement.textContent = message;
+            messageElement.classList.add('show');
+
+            setTimeout(() => {
+                messageElement.classList.remove('show');
+            }, 2000);
+        }
+
+        // Render movies
+        function renderMovies() {
+            const moviesGrid = document.getElementById('moviesGrid');
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarkedMovies') || '[]');
+            
+            if (currentState.movies.length === 0) {
+                moviesGrid.innerHTML = `
+                    <div class="empty-state">
+                        <h2>No Movies Found</h2>
+                        <p>Try adjusting your filters or search criteria.</p>
+                        <button class="btn back-btn" onclick="handleBackToMoods()">
+                            <span>←</span> Back to Moods
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            const movie = currentState.movies[currentState.currentIndex];
+            const isBookmarked = bookmarks.some(b => b.id === movie.id);
+            const shareUrl = `${window.location.origin}/results.html?movie=${movie.id}`;
+            
+            moviesGrid.innerHTML = `
+                <div class="movie-container">
+                    <div class="poster-container">
+                        <img src="${TMDB_IMAGE_BASE_URL}${movie.poster_path}" 
+                             alt="${movie.title}" 
+                             class="movie-poster"
+                             onerror="this.src='https://via.placeholder.com/500x750?text=No+Poster'">
+                        <div class="action-buttons">
+                            <button class="action-btn ${isBookmarked ? 'bookmarked' : ''}" 
+                                    onclick="toggleBookmark(${movie.id})"
+                                    title="${isBookmarked ? 'Remove from Bookmarks' : 'Add to Bookmarks'}">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn" 
+                                    onclick="copyMovieLink('${shareUrl}')"
+                                    title="Copy Link">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 class="movie-title">${movie.title}</h3>
+                        <div class="movie-year">${movie.release_date.split('-')[0]}</div>
+                        <div class="movie-rating">⭐ ${movie.vote_average.toFixed(1)}</div>
+                        <p class="movie-description">${movie.overview || 'No description available.'}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add copy link functionality
+        function copyMovieLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showCopyMessage('Link copied to clipboard!');
+            }).catch(() => {
+                showCopyMessage('Failed to copy link');
+            });
+        }
+
+        // Regenerate movies
+        async function regenerateMovies() {
+            try {
+                const results = await fetchMovies();
+                if (results.length === 0) {
+                    showCopyMessage('No movies found. Try different filters.');
+                    return;
+                }
+                currentState.movies = results;
+                currentState.currentIndex = 0;
+                saveState();
+                renderMovies();
+            } catch (error) {
+                console.error('Error regenerating movies:', error);
+                showCopyMessage('Error generating movies. Please try again.');
+            }
+        }
+
+        // Initialize
+        initializeState();
+    </script>
+</body>
+</html> 
